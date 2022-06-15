@@ -1,12 +1,16 @@
 import { Carro, CarroDTO, CarroStatus } from "../../domain/Carro";
-import { Cliente, ClienteDTO } from "../../domain/Cliente";
+import { ClienteDTO } from "../../domain/Cliente";
+import { History, HistoryDTO } from "../../domain/History";
 import { ICarRepository } from "../repository/CarroRepositoryInterface";
 import { IClientRepository } from "../repository/ClienteRepositoryInterface";
 import { IHistoricoRepository } from "../repository/HistoricoRepositoryInterface";
 
 type AlugarCarroUseCaseDTO = {
-  cnh: string;
-  placaCarro: string;
+  carroPlaca: string
+  dataAlocacao: Date
+  dataDevolucao: Date
+  clienteCnh: string
+  ativo: boolean
 };
 
 export class AlugarCarroUseCase {
@@ -18,7 +22,7 @@ export class AlugarCarroUseCase {
 
   async execute(props: AlugarCarroUseCaseDTO) {
     const cliente = await this.clientRepo
-      .procurarPorCNH(props.cnh)
+      .procurarPorCNH(props.clienteCnh)
       .then((res: ClienteDTO) => {
         return res;
       });
@@ -26,8 +30,9 @@ export class AlugarCarroUseCase {
     if (!cliente) {
       return new Error("Cliente não encontrado");
     }
+
     const carro = await this.carRepo
-      .procurarPorPlaca(props.placaCarro)
+      .procurarPorPlaca(props.carroPlaca)
       .then((res: CarroDTO) => {
         return res;
       });
@@ -35,30 +40,30 @@ export class AlugarCarroUseCase {
     if (!carro) {
       return new Error("Carro não encontrado");
     }
+
     if (
       carro.status == CarroStatus.indisponivel ||
       carro.status == CarroStatus.reservado
     ) {
       return new Error("Carro já está em uso.");
     }
+
     const request = {
-      client: Cliente.create({ ...cliente }),
       car: Carro.create({ ...carro }),
+      history: History.create({ ...props })
     };
 
     const response = {
-      cliente: await this.clientRepo
-        .alugarCarro(request.client, request.car.props.placa)
-        .then((res) => {
-          return res;
-        }),
       carro: await this.carRepo
         .aluguelDeCarro(request.car)
         .then((res: CarroDTO) => res),
+      history: await this.historicoRepo
+        .arquivarRegistro(request.history)
+        .then((res: HistoryDTO) => res)
     };
 
-    await this.historicoRepo.arquivarRegistro(response.carro, response.cliente);
-
-    return response;
+    return {
+      ... response
+    };
   }
 }

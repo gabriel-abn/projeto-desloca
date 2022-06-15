@@ -12,6 +12,7 @@ export class ClientRepository implements IClientRepository {
 
     return response;
   }
+
   async registrar(cliente: Cliente): Promise<ClienteDTO> {
     const response = await prismaClient.cliente.create({
       data: {
@@ -21,6 +22,7 @@ export class ClientRepository implements IClientRepository {
 
     return { ...response };
   }
+
   async procurarPorCNH(cnh: string): Promise<ClienteDTO> {
     const response = await prismaClient.cliente
       .findFirst({
@@ -32,46 +34,15 @@ export class ClientRepository implements IClientRepository {
 
     return response;
   }
-  async alugarCarro(cliente: Cliente, placaCarro: string): Promise<ClienteDTO> {
-    const response = await prismaClient.cliente.update({
-      where: {
-        cnh: cliente.props.cnh,
-      },
-      data: {
-        placa: {
-          connect: {
-            placa: placaCarro,
-          },
+
+  async login(email: string): Promise<ClienteDTO> {
+    const response = await prismaClient.cliente
+      .findFirst({
+        where: {
+          email
         },
-      },
-    });
-
-    return response;
-  }
-  async reservarCarro(
-    cliente: Cliente,
-    placaCarro: string
-  ): Promise<ClienteDTO> {
-    const response = await prismaClient.cliente.update({
-      where: {
-        cnh: cliente.props.cnh,
-      },
-      data: {
-        carroPlaca: placaCarro,
-      },
-    });
-
-    return response;
-  }
-  async entregarCarro(cliente: Cliente): Promise<ClienteDTO> {
-    const response = await prismaClient.cliente.update({
-      where: {
-        cnh: cliente.props.cnh,
-      },
-      data: {
-        carroPlaca: null,
-      },
-    });
+      })
+      .then((res: ClienteDTO) => res);
 
     return response;
   }

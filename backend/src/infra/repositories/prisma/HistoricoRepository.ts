@@ -1,37 +1,71 @@
-import {
-  HistoricoDTO,
-  IHistoricoRepository,
+import { 
+  IHistoricoRepository 
 } from "../../../application/repository/HistoricoRepositoryInterface";
-import { CarroDTO } from "../../../domain/Carro";
-import { ClienteDTO } from "../../../domain/Cliente";
+import { History, HistoryDTO } from "../../../domain/History";
+
 import { prismaClient } from "./prismaClient";
 
 export class HistoricoRepository implements IHistoricoRepository {
-  async arquivarRegistro(
-    carro: CarroDTO,
-    cliente: ClienteDTO
-  ): Promise<HistoricoDTO> {
+  async arquivarRegistro(history: History): Promise<HistoryDTO> {
     const response = await prismaClient.historico.create({
       data: {
-        cliente: {
-          connect: {
-            cnh: cliente.cnh,
-          },
-        },
         carro: {
           connect: {
-            placa: carro.placa,
-          },
+            placa: history.props.carroPlaca
+          }
         },
+        cliente: {
+          connect: {
+            cnh: history.props.clienteCnh
+          }
+        },
+        ativo: history.props.ativo,
+        dataAlocacao: history.props.dataAlocacao,
+        dataDevolucao: history.props.dataDevolucao
       },
     });
 
     return response;
   }
-  async recuperarRegistro(cnh: string): Promise<HistoricoDTO> {
-    const response = await prismaClient.historico.findFirst({
+  async devolverVeiculo(history: History): Promise<HistoryDTO> {
+    const response = await prismaClient.historico.update({
+      where: {
+        id: history.props.id
+      },
+      data: {
+        ativo: false
+      }
+    });
+
+    return response;
+  }
+  async renovarVeiculo(history: History): Promise<HistoryDTO> {
+    const response = await prismaClient.historico.update({
+      where: {
+        id: history.props.id
+      },
+      data: {
+        ativo: true,
+        dataDevolucao: history.props.dataDevolucao
+      }
+    });
+
+    return response;
+  }
+
+  async getHistoryByCNH(cnh: string): Promise<HistoryDTO[]> {
+    const response = await prismaClient.historico.findMany({
       where: {
         clienteCnh: cnh,
+      },
+    });
+
+    return response;
+  }
+  async getHistoryByPlaca(placa: string): Promise<HistoryDTO[]> {
+    const response = await prismaClient.historico.findMany({
+      where: {
+        carroPlaca: placa,
       },
     });
 

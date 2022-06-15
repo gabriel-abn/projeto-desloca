@@ -11,18 +11,13 @@ datasource db {
 }
 
 model Cliente {
-  nome           String
-  cpf            String
-  cnh            String      @id
-  dataNascimento DateTime
-  endereco       String
-  telefone       String
-  email          String
-  cartao         String
-  senhaAcesso    String
-  placa          Carro?      @relation(fields: [carroPlaca], references: [placa])
-  carroPlaca     String?
-  Historico      Historico[]
+  nome        String
+  cnh         String      @id
+  telefone    String
+  email       String
+  senhaAcesso String
+  isAdmin     Boolean
+  Historico   Historico[]
 }
 
 model Carro {
@@ -31,16 +26,20 @@ model Carro {
   placa     String      @id
   status    String
   cor       String
-  Cliente   Cliente[]
+  image     String
+  ano       Int
+  price     Float
+  motor     Float
   Historico Historico[]
 }
 
 model Historico {
-  cliente       Cliente   @relation(fields: [clienteCnh], references: [cnh])
-  carro         Carro     @relation(fields: [carroPlaca], references: [placa], onUpdate: Cascade)
+  cliente       Cliente  @relation(fields: [clienteCnh], references: [cnh])
+  carro         Carro    @relation(fields: [carroPlaca], references: [placa], onUpdate: Cascade)
   clienteCnh    String
   carroPlaca    String
-  id            String    @id @default(uuid())
-  dataAlocacao  DateTime  @default(now())
-  dataDevolucao DateTime?
+  ativo         Boolean
+  id            String   @id @default(uuid())
+  dataAlocacao  DateTime
+  dataDevolucao DateTime
 }

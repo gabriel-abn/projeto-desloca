@@ -1,21 +1,9 @@
-import { CarroDTO } from "../../domain/Carro";
-import { ClienteDTO } from "../../domain/Cliente";
-
-export enum TipoArquivo {
-  aluguel = "ALUGUEL",
-  reserva = "RESERVA",
-  devolucao = "DEVOLUCAO",
-}
-
-export type HistoricoDTO = {
-  clienteCnh: string;
-  carroPlaca: string;
-  id: string;
-  dataAlocacao: Date;
-  dataDevolucao?: Date;
-};
+import { History, HistoryDTO } from "../../domain/History";
 
 export interface IHistoricoRepository {
-  arquivarRegistro(carro: CarroDTO, cliente: ClienteDTO): Promise<HistoricoDTO>;
-  recuperarRegistro(cnh: string): Promise<HistoricoDTO>;
+  arquivarRegistro(history: History): Promise<HistoryDTO>;
+  devolverVeiculo(history: History): Promise<HistoryDTO>;
+  renovarVeiculo(history: History): Promise<HistoryDTO>;
+  getHistoryByCNH(cnh: string): Promise<HistoryDTO[]>;
+  getHistoryByPlaca(placa: string): Promise<HistoryDTO[]>;
 }
